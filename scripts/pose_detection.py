@@ -12,7 +12,8 @@ def get_coordinates(landmarks, body_part):
         x = landmarks[body_part_index].x
         y = landmarks[body_part_index].y
         z = landmarks[body_part_index].z
-        return [x, y, z]
+
+        return [x, y]
     else:
         return None
 
@@ -23,19 +24,42 @@ def calculate_angle(a,b,c):
     b = np.array(b) # Mid
     c = np.array(c) # End
     
-    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
-    angle = np.abs(radians*180.0/np.pi)
+    angle_rad = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+    angle_deg = np.abs(angle_rad*180.0/np.pi)
     
-    if angle >180.0:
-        angle = 360-angle
+    if angle_deg >180.0:
+        angle_deg = 360-angle_deg
         
-    return angle
+    return angle_deg
+
+# Calculate angle between three points in 3D space
+def calculate_angle_3d(a,b,c):
+    a = np.array(a) # First
+    b = np.array(b) # Mid
+    c = np.array(c) # End
+
+    vector_ab = b - a
+    vector_bc = c - b
+
+    unit_vector_ab = vector_ab / np.linalg.norm(vector_ab)
+    unit_vector_bc = vector_bc / np.linalg.norm(vector_bc)
+    dot_product = np.dot(unit_vector_ab, unit_vector_bc)
+    angle_rad = np.arccos(dot_product)
+    angle_deg = np.degrees(angle_rad)
+        
+    return angle_deg
+
+# a = [1,2,3]
+# b = [2,5,6]
+# c = [1,8,9]
+
+# print(calculate_angle_3d(a,b,c))
 
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-video_path = 'test_videos/type3.mp4'
+video_path = 'test_videos/talk.mp4'
 cap = cv2.VideoCapture(video_path)
 
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -43,7 +67,7 @@ frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 folder_path = os.path.join(os.getcwd(), 'results')
 os.makedirs(folder_path, exist_ok=True)
-csv_path = os.path.join(folder_path, 'type3.csv')
+csv_path = os.path.join(folder_path, 'talk.csv')
 
 with open(csv_path, 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
@@ -74,13 +98,9 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
             left_elbow = get_coordinates(landmarks, 'LEFT_ELBOW')
             left_wrist = get_coordinates(landmarks, 'LEFT_WRIST')
 
-            print(left_shoulder)
-
             right_shoulder = get_coordinates(landmarks, 'RIGHT_SHOULDER')
             right_elbow = get_coordinates(landmarks, 'RIGHT_ELBOW')
             right_wrist = get_coordinates(landmarks, 'RIGHT_WRIST')
-
-            print(right_shoulder)
 
             # Calculate angle
             left_angle = calculate_angle(left_shoulder, left_elbow, left_wrist)
