@@ -27,11 +27,10 @@ def get_coordinates(landmarks, body_part):
         return None
 
 
-
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-video_path = 'type2.mp4'
+video_path = 'test_videos/type2.mp4'
 cap = cv2.VideoCapture(video_path)
 
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
